@@ -36,5 +36,38 @@ To frame the forecasting task as a supervised learning problem, we use a sliding
 
 We establish simple baselines in `src/baselines.py` to benchmark our upcoming advanced models. Performance is evaluated using the average Mean Squared Error (MSE) and Mean Absolute Error (MAE) across all 40 state variables.
 
-* **Persistence Baseline:** Assumes the system state remains completely unchanged from the most recently observed time step. 
+* **Persistence Baseline:** Assumes the system state remains completely unchanged from the most recently observed time step.
+
+* ---
+
+## Step 5: Kolmogorov-Arnold Networks (KAN) & Conformal UQ
+
+We implemented a Time-Series KAN to forecast the chaotic dynamics. Unlike standard MLPs, KANs parameterize non-linear activation functions on the *edges* rather than the nodes.
+
+**Architectural Influences:**
+* **[A Practitioner's Guide to Kolmogorov-Arnold Networks](https://arxiv.org/abs/2510.25781):** Guided the formulation of the edge functions as a composite of a base activation (SiLU) and a learnable localized curve (Gaussian RBFs). We applied an L1 sparsity penalty to the weights to encourage localized learning and prune unused edges.
+* **[Time Series Forecasting with Hahn KAN](https://arxiv.org/abs/2601.18837):** Guided the macro-architecture for time-series. We bypassed pure channel-independence to preserve the spatial cross-coupling of the Lorenz 96 ring, adopting a bottleneck structure (Input 400 -> Hidden 128 -> Output 40) stabilized by Layer Normalization.
+
+**Performance vs. Baselines (The Reality Check):**
+The metrics revealed a critical lesson in dynamical systems forecasting. Because our data was generated with a highly granular time step ($dt=0.01$), the one-step-ahead prediction task is locally smooth. Ridge regression brilliantly exploited this, effectively learning a linear finite-difference approximation of the local gradients to achieve near-perfect short-term accuracy (MSE: 0.0001). 
+
+The KAN fell into the classic deep learning trap of over-parameterization for locally linear tasks. Its highly expressive spline edges memorized the specific chaotic noise of the training set (Train MSE: 0.027) but failed to generalize the continuous physics to unseen data (Test MSE: 1.396). Despite this, the bottleneck architecture proved exceptionally computationally efficient (training in <30 seconds with <25 MB peak VRAM).
+
+**Uncertainty Quantification (Conformal Prediction):**
+Because point predictions in chaotic regimes are prone to massive generalization gaps, we implemented **Split Conformal Regression** to mathematically bound the errors.
+* We calculated the absolute residuals on the validation set, pooling them across all 40 variables to leverage the translational invariance of the spatial ring.
+* We computed a finite-sample corrected quantile.
+* Applied to the test set, this distribution-free approach successfully bounded the true chaotic horizon, achieving **89.27% empirical coverage** against our strict theoretical target of 90.0%.
+
+---
+
+## Reproducibility & Tracking
+
+This project enforces strict scientific reproducibility. The raw data generation is hardcoded with a fixed initial perturbation. The training pipelines utilize a global seed (`42`) that locks Python, NumPy, PyTorch, and cuDNN deterministic behaviors, ensuring identical metrics and hardware footprints across runs. 
+
+---
+
+## Next Steps
+
+With the data pipeline established, baseline limitations understood, and a robust Conformal Prediction framework in place, the repository will next explore continuous-time embeddings via **Neural ODEs (SciML)** and high-dimensional state memory via **Reservoir Computing**.
 * **Ridge Regression Baseline:** A linear model that flattens the 400 input features (10 steps * 40 variables) to predict the next 40 target states, utilizing L2 regularization to prevent overfitting.
