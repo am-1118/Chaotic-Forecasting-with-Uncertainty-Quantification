@@ -38,7 +38,7 @@ We establish simple baselines in `src/baselines.py` to benchmark our upcoming ad
 
 * **Persistence Baseline:** Assumes the system state remains completely unchanged from the most recently observed time step.
 
-* ---
+* **Ridge Regression Baseline:** A linear model that flattens the 400 input features (10 steps * 40 variables) to predict the next 40 target states, utilizing L2 regularization to prevent overfitting.
 
 ## Step 5: Kolmogorov-Arnold Networks (KAN) & Conformal UQ
 
@@ -98,4 +98,4 @@ Here is a summary of the architectures implemented and their performance on the 
 * **Deep Echo State Networks (DeepESN):** Dynamically constructed using an FFT-based stopping algorithm, which halted at 3 layers—proving the high-resolution system lacks a deep multi-timescale hierarchy. The untrained random reservoir scrambled the clean signal, drastically reducing point accuracy. **(Test MSE: 3.4553 | Test MAE: 1.4769)**. Conformal Prediction still maintained mathematical guarantees with **89.19% empirical coverage**, but expanded the interval width to **6.00** to compensate for the high model variance.
 
 Ultimately, the purpose of this repository was to demonstrate a comprehensive understanding of the machine learning for science workflow by implementing, evaluating, and critically analyzing modern research papers.
-* **Ridge Regression Baseline:** A linear model that flattens the 400 input features (10 steps * 40 variables) to predict the next 40 target states, utilizing L2 regularization to prevent overfitting.
+
