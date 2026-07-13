@@ -67,7 +67,28 @@ This project enforces strict scientific reproducibility. The raw data generation
 
 ---
 
-## Next Steps
+---
+
+## Step 6: Deep Echo State Networks (DeepESN) & Conformal UQ
+
+To bypass the optimization failures and spectral bias of standard continuous neural networks (like PINNs) on long-horizon chaos, we implemented a Deep Echo State Network. 
+
+**Architectural Influences & Methodologies:**
+* We built a dynamically sized hierarchical reservoir with leaky-integrator dynamics, explicitly enforcing the Echo State Property at every layer.
+* **[Design of Deep Echo State Networks](https://arxiv.org/abs/1912.12423):** We implemented the paper's dynamic architectural design algorithm. By applying a Fast Fourier Transform (FFT) to the state history of each layer, we tracked the shift in the spectral centroid. The algorithm automatically halts the addition of new layers when the filtering effect (low-pass frequency shift) converges.
+
+**Performance vs. Baselines (The Cost of Complexity):**
+The FFT algorithm halted the architecture at just 3 layers, proving mathematically that the highly resolved Lorenz 96 system ($dt=0.01$) lacks a deep, multi-timescale hierarchy. 
+
+Furthermore, the DeepESN severely underperformed the simple Ridge Regression baseline (Test MSE: 3.45 vs 0.0001). Because the system's physics are locally linear at $dt=0.01$, the DeepESN took a clean, easily calculable gradient and projected it into a massive, randomized non-linear space, scrambling the signal. This provides empirical proof that injecting deep, randomized non-linearity actively harms one-step-ahead forecasting on highly resolved, fully observable differential equations.
+
+**Uncertainty Quantification:**
+Despite the model's poor point predictions, **Split Conformal Regression** successfully bounded the errors, achieving **89.19% empirical coverage** against a strict target of 90.0%. However, to maintain this mathematical guarantee on a poorly generalized model, the algorithm drastically expanded the interval width ($q\_hat \approx 3.00$), perfectly illustrating the trade-off between model accuracy and uncertainty precision.
+
+---
+
+## Conclusion
+This repository demonstrates a rigorous approach to scientific machine learning on chaotic systems. It highlights a critical, often-overlooked reality in the field: massive, highly non-linear deep learning architectures (KANs, DeepESNs) can easily overfit or scramble locally smooth physical dynamics, being drastically outperformed by simple, physically-grounded linear baselines. Furthermore, the integration of Conformal Prediction provides a mathematically guaranteed framework for bounding the chaotic horizon, regardless of the underlying model's performance.
 
 With the data pipeline established, baseline limitations understood, and a robust Conformal Prediction framework in place, the repository will next explore continuous-time embeddings via **Neural ODEs (SciML)** and high-dimensional state memory via **Reservoir Computing**.
 * **Ridge Regression Baseline:** A linear model that flattens the 400 input features (10 steps * 40 variables) to predict the next 40 target states, utilizing L2 regularization to prevent overfitting.
