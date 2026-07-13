@@ -1,0 +1,12 @@
+{
+    "performance": {
+        "test_mse": 3.455343723297119,
+        "test_mae": 1.4769818782806396
+    },
+    "computational_metrics": {
+        "train_time_seconds": 20.29,
+        "peak_vram_mb": 51.22,
+        "total_reservoir_parameters": 54000,
+        "selected_layers": 3
+    }
+}
