@@ -87,8 +87,15 @@ Despite the model's poor point predictions, **Split Conformal Regression** succe
 
 ---
 
-## Conclusion
-This repository demonstrates a rigorous approach to scientific machine learning on chaotic systems. It highlights a critical, often-overlooked reality in the field: massive, highly non-linear deep learning architectures (KANs, DeepESNs) can easily overfit or scramble locally smooth physical dynamics, being drastically outperformed by simple, physically-grounded linear baselines. Furthermore, the integration of Conformal Prediction provides a mathematically guaranteed framework for bounding the chaotic horizon, regardless of the underlying model's performance.
+## Conclusion & Summary of Findings
 
-With the data pipeline established, baseline limitations understood, and a robust Conformal Prediction framework in place, the repository will next explore continuous-time embeddings via **Neural ODEs (SciML)** and high-dimensional state memory via **Reservoir Computing**.
+This repository demonstrates a rigorous approach to scientific machine learning on chaotic spatio-temporal systems. By benchmarking advanced architectures against simple baselines, it highlights a critical reality in the field: massive, highly non-linear deep learning models can easily overfit or scramble locally smooth physical dynamics if not applied carefully.
+
+Here is a summary of the architectures implemented and their performance on the Lorenz 96 forecasting task:
+
+* **Ridge Regression Baseline:** Capitalized on the locally linear physics of the highly resolved data (dt=0.01) to achieve near-perfect short-term forecasting. **(Test MSE: 0.0001 | Test MAE: 0.0057)**
+* **Kolmogorov-Arnold Networks (KAN):** Implemented using SiLU and Gaussian RBFs on the edges with an L1 sparsity penalty. The highly expressive splines over-parameterized the locally linear task, leading to generalization gaps. **(Test MSE: 1.3965 | Test MAE: 0.9161)**. However, Split Conformal Prediction successfully bounded these errors, achieving **89.27% empirical coverage** with an interval width of **3.69**.
+* **Deep Echo State Networks (DeepESN):** Dynamically constructed using an FFT-based stopping algorithm, which halted at 3 layers—proving the high-resolution system lacks a deep multi-timescale hierarchy. The untrained random reservoir scrambled the clean signal, drastically reducing point accuracy. **(Test MSE: 3.4553 | Test MAE: 1.4769)**. Conformal Prediction still maintained mathematical guarantees with **89.19% empirical coverage**, but expanded the interval width to **6.00** to compensate for the high model variance.
+
+Ultimately, the purpose of this repository was to demonstrate a comprehensive understanding of the machine learning for science workflow by implementing, evaluating, and critically analyzing modern research papers.
 * **Ridge Regression Baseline:** A linear model that flattens the 400 input features (10 steps * 40 variables) to predict the next 40 target states, utilizing L2 regularization to prevent overfitting.
